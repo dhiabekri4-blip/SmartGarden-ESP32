@@ -1,64 +1,89 @@
 # 🌱 SmartGarden ESP32
 
-An IoT-based smart irrigation system built with **ESP32**, **Wokwi**, and **Blynk**.
+An **IoT-based smart irrigation system** built with ESP32, C++ using the Arduino framework, Wokwi, and Blynk.
 
-The project monitors environmental and soil conditions for two plant zones — **Tomatoes** and **Mint** — and automatically controls irrigation while also allowing remote manual control through a Blynk dashboard.
+The system monitors environmental and soil conditions for two independent plant zones — **Tomatoes** and **Mint** — and automatically controls irrigation while also providing real-time monitoring and manual control through a Blynk IoT dashboard.
+
+## 📸 Project Preview
+
+### Wokwi Simulation
+
+![Wokwi Simulation](wokwi-simulation.png)
+
+### Blynk IoT Dashboard
+
+![Blynk Dashboard](blynk-dashboard.png)
+
+---
 
 ## 🚀 Features
 
 * 🌱 Multi-zone soil moisture monitoring
 * 🍅 Independent Tomato irrigation control
 * 🌿 Independent Mint irrigation control
-* 🌡️ Temperature monitoring with DHT22
+* 🤖 Automatic irrigation
+* 🎮 Manual irrigation control
+* 🔄 AUTO / MANUAL operating modes
+* 🌡️ Temperature monitoring
 * 💧 Humidity monitoring
 * 🚰 Water tank level monitoring
-* 🤖 Automatic irrigation mode
-* 📱 Manual pump control from Blynk
-* 🔄 AUTO / MANUAL mode switching
+* 📱 Real-time Blynk IoT dashboard
 * 🛑 Low-water tank protection
 * ⚠️ Soil sensor fault detection
 * ⚠️ DHT22 fault detection
-* ⏱️ Automatic 3-second pump shutoff
+* ⏱️ Automatic pump timeout
 * 🔁 Irrigation cooldown protection
-* 📊 Live IoT telemetry through Blynk
-* 🖥️ Full simulation in Wokwi
+* 🖥️ Full Wokwi simulation
+
+---
 
 ## 🧠 System Architecture
 
 ```text
-                       BLYNK CLOUD
-                            │
-                            │ Wi-Fi
-                            ▼
-                         ESP32
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-        DHT22         Water Tank       Soil Sensors
-          │                │             │      │
-    Temperature        Tank Level     Tomato   Mint
-     Humidity                           │        │
-                                       ▼        ▼
-                                   Pump 1     Pump 2
+                        BLYNK CLOUD
+                             │
+                           Wi-Fi
+                             │
+                             ▼
+                           ESP32
+                             │
+          ┌──────────────────┼──────────────────┐
+          │                  │                  │
+        DHT22           Water Tank        Soil Sensors
+          │                  │              │      │
+    Temperature          Tank Level      Tomato   Mint
+     Humidity                              │        │
+                                           ▼        ▼
+                                        Pump 1   Pump 2
 ```
+
+The **ESP32** acts as the main controller.
+
+It continuously reads the sensors, evaluates the condition of each plant zone, controls the irrigation pumps, applies safety rules, and communicates with the Blynk cloud through Wi-Fi.
+
+---
 
 ## 🌱 Plant Zones
 
-### Tomatoes
+### 🍅 Tomatoes
 
-* Soil sensor: GPIO 34
-* Pump control: GPIO 26
-* Watering threshold: below 45%
-* Healthy moisture level: 50%
+* Soil moisture sensor: **GPIO 34**
+* Pump: **GPIO 26**
+* Watering threshold: **45%**
+* Healthy moisture level: **50%**
 
-### Mint
+### 🌿 Mint
 
-* Soil sensor: GPIO 32
-* Pump control: GPIO 27
-* Watering threshold: below 30%
-* Healthy moisture level: 35%
+* Soil moisture sensor: **GPIO 32**
+* Pump: **GPIO 27**
+* Watering threshold: **30%**
+* Healthy moisture level: **35%**
 
-## 🔌 Pin Mapping
+Each zone is controlled independently, allowing different plants to have different watering requirements.
+
+---
+
+## 🔌 ESP32 Pin Mapping
 
 | Component          | ESP32 Pin |
 | ------------------ | --------- |
@@ -69,72 +94,104 @@ The project monitors environmental and soil conditions for two plant zones — *
 | Tomato Pump        | GPIO 26   |
 | Mint Pump          | GPIO 27   |
 
-## 📱 Blynk Datastreams
+---
 
-| Virtual Pin | Function             |
-| ----------- | -------------------- |
-| V0          | Tomato soil moisture |
-| V1          | Mint soil moisture   |
-| V2          | Temperature          |
-| V3          | Humidity             |
-| V4          | Water tank level     |
-| V5          | Tomato pump status   |
-| V6          | Mint pump status     |
-| V7          | System status        |
-| V8          | AUTO / MANUAL mode   |
-| V9          | Manual Tomato pump   |
-| V10         | Manual Mint pump     |
+## 📱 Blynk IoT Integration
 
-## 🤖 Automatic Mode
+Blynk provides remote monitoring and control of the SmartGarden system.
 
-When **AUTO mode** is enabled, the ESP32 decides when irrigation is required.
+### Datastreams
 
-A pump starts only if:
+| Virtual Pin | Function                   |
+| ----------- | -------------------------- |
+| V0          | Tomato soil moisture       |
+| V1          | Mint soil moisture         |
+| V2          | Temperature                |
+| V3          | Humidity                   |
+| V4          | Water tank level           |
+| V5          | Tomato pump status         |
+| V6          | Mint pump status           |
+| V7          | System status              |
+| V8          | AUTO / MANUAL mode         |
+| V9          | Manual Tomato pump control |
+| V10         | Manual Mint pump control   |
 
-* Soil moisture is below the configured threshold
-* The soil sensor is working correctly
-* The water tank is not low
+The dashboard displays sensor telemetry and allows the irrigation system to be controlled remotely.
+
+---
+
+## 🤖 Automatic Irrigation Mode
+
+When **AUTO mode** is enabled, the ESP32 decides when each plant requires irrigation.
+
+A pump can start when:
+
+* Soil moisture falls below the plant's threshold
+* The soil sensor is functioning correctly
+* The water tank contains enough water
 * The pump is currently OFF
-* The irrigation cooldown period has finished
+* The irrigation cooldown has finished
 
-The pump automatically stops after **3 seconds**.
+Once irrigation begins, the pump automatically stops after the configured watering duration.
 
-## 🎮 Manual Mode
+This prevents unnecessary continuous watering.
 
-When **MANUAL mode** is enabled, the user can control each irrigation zone remotely through Blynk.
+---
 
-* V9 controls the Tomato pump
-* V10 controls the Mint pump
+## 🎮 Manual Control Mode
 
-Manual control still respects important safety protections such as low tank level and sensor faults.
+When **AUTO mode is disabled**, the pumps can be controlled remotely from the Blynk dashboard.
+
+* **V9** → Tomato pump
+* **V10** → Mint pump
+
+After a manual watering cycle finishes, the ESP32 updates the corresponding Blynk control back to OFF so that the dashboard always reflects the real pump state.
+
+Safety conditions remain active even during manual operation.
+
+---
 
 ## 🛡️ Safety & Fault Handling
 
-The system includes several embedded safety mechanisms.
+The system includes several protection mechanisms to make the irrigation logic more robust.
 
-### Low Tank Protection
+### 🚰 Low Tank Protection
 
-If the water tank falls below 10%, irrigation is blocked and any running pump is stopped.
+If the water tank level becomes too low:
 
-### Soil Sensor Failure
+* New irrigation cycles are blocked
+* Running pumps are stopped
+* The system reports the low-tank condition
 
-Invalid soil sensor values are counted. After repeated invalid readings, the sensor is marked as faulty and irrigation for that zone is blocked.
+### ⚠️ Soil Sensor Fault Detection
 
-### DHT22 Failure
+Repeated extreme ADC readings are interpreted as a possible disconnected or failed soil sensor.
 
-Repeated invalid temperature or humidity readings trigger a DHT22 sensor fault.
+When a sensor fault is detected, irrigation for that plant zone is blocked.
 
-### Pump Timeout
+### 🌡️ DHT22 Fault Detection
 
-Each watering cycle is limited to 3 seconds to prevent a pump from remaining active indefinitely.
+Repeated invalid temperature or humidity readings trigger a DHT sensor fault.
 
-### Cooldown
+This prevents invalid environmental measurements from being treated as valid data.
+
+### ⏱️ Pump Timeout
+
+A pump cannot remain ON indefinitely.
+
+Each watering cycle automatically stops after the configured watering duration.
+
+### 🔁 Irrigation Cooldown
 
 After watering, the system waits before allowing another automatic irrigation cycle.
 
+This helps prevent rapid repeated pump activation.
+
+---
+
 ## 📊 System States
 
-The controller can report the following states:
+The controller evaluates the overall condition of the SmartGarden and reports states such as:
 
 ```text
 NORMAL
@@ -145,50 +202,83 @@ CRITICAL
 SENSOR_FAULT
 ```
 
-## 🧰 Technologies Used
+These states are also transmitted to Blynk for remote monitoring.
 
-* ESP32
-* Arduino / C++
-* Blynk IoT
-* Wokwi
-* DHT22
-* Analog soil moisture sensors
-* Water level sensing
-* Git & GitHub
+---
+
+## 💻 Technologies Used
+
+* **ESP32**
+* **C++**
+* **Arduino framework**
+* **Blynk IoT**
+* **Wokwi**
+* **DHT22**
+* **Analog soil moisture sensing**
+* **Water level sensing**
+* **Git**
+* **GitHub**
+
+---
+
+## 📂 Repository Structure
+
+```text
+SmartGarden-ESP32/
+│
+├── sketch.ino
+├── diagram.json
+├── libraries.txt
+├── wokwi-project.txt
+├── wokwi-simulation.png
+├── blynk-dashboard.png
+└── README.md
+```
+
+### `sketch.ino`
+
+Main ESP32 firmware containing sensor acquisition, irrigation control, Blynk communication, operating modes, and safety logic.
+
+### `diagram.json`
+
+Wokwi circuit configuration.
+
+### `libraries.txt`
+
+Libraries required by the Wokwi simulation.
+
+---
 
 ## ▶️ Running the Project
 
-1. Open the project in Wokwi.
-2. Create a Blynk template and device.
-3. Configure virtual pins V0–V10.
-4. Replace the placeholder Blynk credentials in `sketch.ino` with your own credentials.
-5. Start the simulation.
-6. Open the Blynk device dashboard to monitor and control the SmartGarden.
+1. Open the project in **Wokwi**.
+2. Create a Blynk Template and Device.
+3. Configure the required Blynk datastreams from **V0 to V10**.
+4. Add your own Blynk Template ID and Auth Token to the firmware.
+5. Start the Wokwi simulation.
+6. Open the Blynk dashboard.
+7. Monitor the sensor values and test AUTO/MANUAL irrigation.
 
-> Never commit your real Blynk authentication token to a public repository.
-
-## 📸 Project Preview
-
-### Wokwi Simulation
-
-*Add Wokwi screenshot here.*
-
-### Blynk Dashboard
-
-*Add Blynk dashboard screenshot here.*
+---
 
 ## 🔮 Future Improvements
 
-* Physical hardware prototype
-* PCB design
-* Mobile notifications
-* Historical sensor-data analysis
-* Additional plant zones
-* Weather-aware irrigation
-* Improved water consumption monitoring
+Possible next steps for the project include:
+
+* 🔧 Building a physical hardware prototype
+* 🧩 Designing a custom PCB
+* 📲 Blynk notifications and alerts
+* 📈 Historical sensor-data analysis
+* 🌱 Additional plant zones
+* 🌦️ Weather-aware irrigation
+* 💧 Water consumption tracking
+* 🔋 Battery/solar-powered operation
+
+---
 
 ## 👨‍💻 Author
 
 **Dhia Bekri**
 
-Information Engineering student interested in embedded systems, IoT, software development, and intelligent connected devices.
+Information Engineering student interested in **embedded systems, IoT, software development, and intelligent connected devices**.
+
